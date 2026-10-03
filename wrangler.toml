@@ -1,0 +1,12 @@
+{
+  "name": "open-doors-pray",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-01-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "open-doors-pray",
+      "database_id": "cf3f90a4-0758-4fc0-b1da-0b3a7c91f025"
+    }
+  ]
+}
