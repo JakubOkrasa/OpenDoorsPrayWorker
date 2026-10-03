@@ -1,9 +1,9 @@
 export interface Env {
   DB: D1Database;
-  API_KEY?: string;
+  ApiKey?: string;
 }
 
-interface CalendarEntry {
+export interface CalendarEntry {
   year: number;
   month: number;
   day_of_month: number;
@@ -12,8 +12,10 @@ interface CalendarEntry {
   content: string;
 }
 
-function parsePrayerText(text: string, year: number, month: number): CalendarEntry[] {
+export function parsePrayerText(text: string, year: number, month: number): CalendarEntry[] {
   const result: CalendarEntry[] = [];
+  
+  // Szukamy nagłówków dni, np. "7. Środa", "8. Czwartek", "9. Piątek"
   const dayRegex = /(\d+)\.\s+([A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]+)/g;
   const matches = [...text.matchAll(dayRegex)];
 
@@ -26,9 +28,15 @@ function parsePrayerText(text: string, year: number, month: number): CalendarEnt
     const end = (i + 1 < matches.length) ? matches[i + 1].index! : text.length;
 
     const dayContent = text.substring(start, end).trim();
-    const intentions = dayContent.split('/').map(s => s.trim()).filter(s => s.length > 0);
 
-    for (const rawIntention of intentions) {
+    // 1. Dzielimy po separatorze '/'
+    // 2. Zamieniamy wszelkie znaki nowej linii (\n) oraz wielokrotne spacje na pojedyncze spacje
+    const intentionsRaw = dayContent.split('/')
+      .map(s => s.replace(/\s+/g, ' ').trim())
+      .filter(s => s.length > 0);
+
+    for (const rawIntention of intentionsRaw) {
+      // Szukamy lokalizacji na początku (wielkie litery + spacje do pierwszego dwukropka)
       const locationRegex = /^([A-ZĄĆĘŁŃÓŚŹŻ\s]+):/;
       const locationMatch = rawIntention.match(locationRegex);
 
@@ -37,17 +45,20 @@ function parsePrayerText(text: string, year: number, month: number): CalendarEnt
 
       if (locationMatch) {
         location = locationMatch[1].trim();
+        // Pobieramy całą treść po pierwszym dwukropku LOKALIZACJA:
         content = rawIntention.substring(locationMatch[0].length).trim();
       }
 
-      result.push({
-        year,
-        month,
-        day_of_month: dayOfMonth,
-        weekday,
-        location,
-        content
-      });
+      if (content.length > 0) {
+        result.push({
+          year,
+          month,
+          day_of_month: dayOfMonth,
+          weekday,
+          location,
+          content
+        });
+      }
     }
   }
 
@@ -86,7 +97,7 @@ export default {
 
     // --- METODA POST: Wstawianie surowego tekstu ---
     if (request.method === 'POST') {
-      if (env.API_KEY && request.headers.get('X-API-Key') !== env.API_KEY) {
+      if (env.ApiKey && request.headers.get('X-API-Key') !== env.ApiKey) {
         return new Response(JSON.stringify({ error: 'Brak autoryzacji' }), { status: 401 });
       }
 

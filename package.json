@@ -1,0 +1,12 @@
+{
+  "name": "open-doors-pray-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250924.0",
+    "vitest": "^3.2.4"
+  }
+}
